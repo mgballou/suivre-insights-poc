@@ -5,6 +5,7 @@ import numpy as np
 from insights.config import SimConfig
 from insights.generate import generate_logs
 from insights.lag_lift import rank_suspects
+from insights.sweep import noise_band
 
 
 def alert_precision(config: SimConfig, days: int, alert_threshold: float,
@@ -27,8 +28,7 @@ def alert_precision(config: SimConfig, days: int, alert_threshold: float,
         tags = np.column_stack([df[f"tag_{i}"].to_numpy() for i in range(cfg.n_tags)])
         suspects = rank_suspects(inten, tags, cfg.n_window)
 
-        noise = suspects[~suspects["tag"].isin(true_tags)]["lift"].dropna()
-        band = np.percentile(noise, 95.0) if len(noise) else -np.inf
+        band = noise_band(suspects, true_tags, 95.0)
 
         fired = suspects[(suspects["lift"] >= alert_threshold) & (suspects["lift"] > band)]
         if len(fired) > 0:

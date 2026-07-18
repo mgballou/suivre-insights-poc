@@ -4,6 +4,7 @@ import pandas as pd
 from insights.config import SimConfig
 from insights.generate import generate_logs
 from insights.lag_lift import exposed_mask
+from insights.sweep import spurious_tag_indices
 
 
 def _quantile_bins(confounder: np.ndarray, n_strata: int) -> np.ndarray:
@@ -17,6 +18,8 @@ def _quantile_bins(confounder: np.ndarray, n_strata: int) -> np.ndarray:
     try:
         bins = pd.qcut(pd.Series(confounder), n_strata, labels=False, duplicates="drop")
     except ValueError:
+        # Defensive/dead: qcut returns an all-NaN Series on a constant array
+        # rather than raising, so this branch is not known to be reachable.
         bins = pd.Series(np.full(len(confounder), np.nan))
     return bins.to_numpy()
 
@@ -67,8 +70,7 @@ def rank_adjusted(intensity: np.ndarray, tag_matrix: np.ndarray, confounder: np.
 
 def adjusted_damage(config: SimConfig, n_datasets: int = 300, k: int = 3,
                      n_strata: int = 3) -> float:
-    spurious = [i for i in config.confounding_tag_idx
-                if config.confounding_path and i not in config.true_trigger_idx]
+    spurious = spurious_tag_indices(config)
     if not spurious:
         return float("nan")
 
@@ -79,6 +81,8 @@ def adjusted_damage(config: SimConfig, n_datasets: int = 300, k: int = 3,
         df = generate_logs(config, rng)
         inten = df["intensity"].to_numpy()
         tags = np.column_stack([df[f"tag_{i}"].to_numpy() for i in range(config.n_tags)])
+        # Uses raw `stress` as the confounder; the generative signal is
+        # clip(stress, 0, None) but the difference has been verified negligible.
         confounder = df["stress"].to_numpy()
         ranked = rank_adjusted(inten, tags, confounder, config.n_window, n_strata)
         top = set(ranked.head(k)["tag"])

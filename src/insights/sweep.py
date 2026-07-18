@@ -8,14 +8,25 @@ from insights.generate import generate_logs
 from insights.lag_lift import rank_suspects
 
 
+def noise_band(suspects: pd.DataFrame, true_tags: set[str], noise_pct: float = 95.0) -> float:
+    """The `noise_pct` percentile of non-true tags' lifts, or -inf if there are none."""
+    noise = suspects[~suspects["tag"].isin(true_tags)]["lift"].dropna()
+    return np.percentile(noise, noise_pct) if len(noise) else -np.inf
+
+
+def spurious_tag_indices(config: SimConfig) -> list[int]:
+    """Confounding-path tags that are NOT true triggers = pure spurious candidates."""
+    return [i for i in config.confounding_tag_idx
+            if config.confounding_path and i not in config.true_trigger_idx]
+
+
 def is_hit(suspects: pd.DataFrame, true_idx: tuple[int, ...], k: int = 3,
            noise_pct: float = 95.0) -> bool:
     true_tags = {f"tag_{i}" for i in true_idx}
     top = suspects.head(k)["tag"].tolist()
     if not any(t in true_tags for t in top):
         return False
-    noise = suspects[~suspects["tag"].isin(true_tags)]["lift"].dropna()
-    band = np.percentile(noise, noise_pct) if len(noise) else -np.inf
+    band = noise_band(suspects, true_tags, noise_pct)
     best_true = suspects[suspects["tag"].isin(true_tags)]["lift"].max()
     return bool(best_true > band)
 
@@ -23,9 +34,7 @@ def is_hit(suspects: pd.DataFrame, true_idx: tuple[int, ...], k: int = 3,
 def cell_metrics(config: SimConfig, n_datasets: int = 300, k: int = 3) -> dict:
     hits = fps = 0
     damage = 0
-    # a confounding-path tag that is NOT a true trigger = pure spurious candidate.
-    spurious = [i for i in config.confounding_tag_idx
-                if config.confounding_path and i not in config.true_trigger_idx]
+    spurious = spurious_tag_indices(config)
     true_tags = {f"tag_{i}" for i in config.true_trigger_idx}
     for s in range(n_datasets):
         rng = np.random.default_rng(config.seed + s)
