@@ -1,0 +1,7 @@
+pyproject.toml
+src/insights/__init__.py
+src/insights.egg-info/PKG-INFO
+src/insights.egg-info/SOURCES.txt
+src/insights.egg-info/dependency_links.txt
+src/insights.egg-info/requires.txt
+src/insights.egg-info/top_level.txt
