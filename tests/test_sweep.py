@@ -22,6 +22,17 @@ def test_is_hit_false_when_trigger_buried():
     assert is_hit(df, true_idx=(0,), k=3) is False
 
 
+def test_is_hit_false_when_true_trigger_in_topk_but_below_noise_band():
+    # tag_0 (true) is 3rd by lift (so it IS in top-3), but two noise tags out-lift
+    # it, so it fails to clear the 95th-pct noise band -> not a hit. Pins the AND.
+    df = pd.DataFrame({
+        "tag": ["tag_1", "tag_2", "tag_0", "tag_3", "tag_4"],
+        "lift": [3.0, 2.5, 2.0, 1.0, 0.5],
+        "d": [1, 1, 1, 0, 0], "n_exposed": [10] * 5, "n_occurrences": [5] * 5,
+    })
+    assert is_hit(df, true_idx=(0,), k=3) is False
+
+
 def test_strong_clean_signal_has_high_hit_rate():
     c = SimConfig(days=180, n_tags=5, true_trigger_idx=(0,), effect_points=3.0,
                   flare_phi=0.0, flare_sd=0.0, confounder_strength=0.0,
