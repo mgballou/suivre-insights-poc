@@ -32,6 +32,11 @@ def is_hit(suspects: pd.DataFrame, true_idx: tuple[int, ...], k: int = 3,
 
 
 def cell_metrics(config: SimConfig, n_datasets: int = 300, k: int = 3) -> dict:
+    # CAVEAT: `fp_rate` ("any non-true tag in top-k") is DEGENERATE whenever the
+    # number of true triggers is < k — by pigeonhole the top-k always contains a
+    # non-true tag, so fp_rate == 1.0 identically and discriminates nothing. Read
+    # `confounding_damage` (a specific spurious tag) instead. A real metric would
+    # measure per-tag precision. See the findings note's SUI-21 guidance.
     hits = fps = 0
     damage = 0
     spurious = spurious_tag_indices(config)
