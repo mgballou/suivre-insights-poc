@@ -1,3 +1,6 @@
+# A full freeze, not a list of direct dependencies: the figures and numbers in the
+# notebook are reproducible only against these exact versions. The three direct
+# dependencies are declared in pyproject.toml.
 anyio==4.14.2
 appnope==0.1.4
 argon2-cffi==25.1.0

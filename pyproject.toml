@@ -1,6 +1,8 @@
 [project]
 name = "insights"
 version = "0.1.0"
+description = "Simulation study of the lag-lift food/symptom correlation behind Suivre"
+readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["numpy", "pandas", "matplotlib"]
 

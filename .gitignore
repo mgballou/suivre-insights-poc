@@ -1,6 +1,6 @@
 .venv/
 __pycache__/
 .ipynb_checkpoints/
-outputs/*.png
+.pytest_cache/
 *.egg-info/
 .superpowers/
