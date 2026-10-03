@@ -13,19 +13,29 @@ The answer changed the product. It is written up in
 [**the findings note**](https://github.com/mgballou/suivre/blob/main/docs/2026-07-18-lag-lift-spike-findings.md)
 in the main repository; this repository is where every number in it comes from.
 
-## The verdict: adjust, don't abandon
+## The verdict: adjust the product, don't abandon the insight
 
 The insight is real for moderate and strong triggers given roughly three months of data, and
 fragile everywhere else.
+
+*Adjust* here is the verdict on the **plan** — the spike's three outcomes were proceed, adjust and
+abandon — and not a statistical adjustment for confounders. Adjusting for sleep and stress is the
+one remedy this study found does **not** work; the bullet below says so with the numbers.
 
 - **Detection needs time.** A trigger worth ≥1.5 intensity points is reliably surfaced (hit rate
   ≥0.8) at about 75–90 days of logging. Weaker effects need many months.
 - **One ranking is noise.** At personal scale, pure-noise tags routinely out-rank real ones in a
   single draw. Only the aggregate over many draws is trustworthy — which is exactly what a user
   never sees.
-- **Co-occurrence is the real enemy.** A food with *zero* effect that travels with a real trigger —
-  dessert is dairy and sugar together — is flagged about 61% of the time, and that does **not**
-  wash out with more data. Adjusting for sleep and stress fixes the estimate but not the ranking.
+- **Co-occurrence is the real enemy, and lifestyle tracking does not fix it.** A food with *zero*
+  effect that travels with a real trigger — dessert is dairy and sugar together — is flagged about
+  61% of the time, and that does **not** wash out with more data. Stress-stratified adjustment
+  leaves the innocent food's estimate where it was (0.95 → 0.95) and the ranked damage identical
+  (0.613 → 0.613). [The findings note](https://github.com/mgballou/suivre/blob/main/docs/2026-07-18-lag-lift-spike-findings.md)
+  puts it plainly: sleep and stress *"must not be sold as the fix for food-attribution error; they
+  aren't."* Adjustment does work where the confound is lifestyle-only — a co-occurrence-off check
+  collapses the damage 0.18 → 0.15 — but co-occurrence between two foods is not something
+  lifestyle tracking can reach. Suivre's shipped engine does no adjustment, correctly.
 - **A soft nudge needs 90 days.** "Have you noticed…?" only clears a precision bar of 0.7 from
   about 90 days. At 30 days precision tops out near 0.58 even for strong triggers.
 
