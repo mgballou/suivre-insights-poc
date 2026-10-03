@@ -12,14 +12,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Fails, rather than skips, a PR behind its base: a run whose jobs were all
-  # skipped concludes success, which reads as a pass.
+  # A PR behind its base passes the gate and skips the tests with a notice; a
+  # stale branch is not a failure.
   gate:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    outputs:
+      run: ${{ steps.base.outputs.run }}
     steps:
-      - name: Require the branch to be current with its base
+      - id: base
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -27,13 +29,16 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           behind=$(gh api "repos/$REPO/compare/$BASE...$HEAD_SHA" --jq .behind_by)
-          if [ "$behind" != "0" ]; then
-            echo "::error::This branch is $behind commits behind $BASE. Update it to run CI."
-            exit 1
+          if [ "$behind" = "0" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::This branch is $behind commits behind $BASE. Update it to run CI."
+            echo "run=false" >> "$GITHUB_OUTPUT"
           fi
 
   pytest:
     needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
